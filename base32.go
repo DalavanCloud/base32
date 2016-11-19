@@ -335,6 +335,20 @@ func (enc *Encoding) decode(dst, src []byte) (n int, end bool, err error) {
 // written. If src contains invalid base32 data, it will return the
 // number of bytes successfully written and CorruptInputError.
 // New line characters (\r and \n) are ignored.
+// func (enc *Encoding) decode(dst, s []byte) (n int, err error) {
+// 	strb := []byte(s)
+// 	off := 0
+// 	for _, b := range strb {
+// 		if b == '\n' || b == '\r' {
+// 			continue
+// 		}
+// 		strb[off] = b
+// 		off++
+// 	}
+// 	n, _, err = enc.decode(dst, strb[:off])
+// 	return
+// }
+
 func (enc *Encoding) Decode(dst, s []byte) (n int, err error) {
 	stripped := make([]byte, 0, len(s))
 	for _, c := range s {
@@ -343,11 +357,33 @@ func (enc *Encoding) Decode(dst, s []byte) (n int, err error) {
 		}
 	}
 	n, _, err = enc.decode(dst, stripped)
+ 	return
+}
+
+func (enc *Encoding) DecodeInPlace(strb []byte) (n int, err error) {
+	off := 0
+	for _, b := range strb {
+		if b == '\n' || b == '\r' {
+			continue
+		}
+		strb[off] = b
+		off++
+	}
+	n, _, err = enc.decode(strb, strb[:off])
 	return
 }
 
-// DecodeString returns the bytes represented by the base32 string s.
 func (enc *Encoding) DecodeString(s string) ([]byte, error) {
+	strb := []byte(s)
+	n, err := enc.DecodeInPlace(strb)
+	if err != nil {
+		return nil, err
+	}
+	return strb[:n], nil
+}
+
+// DecodeString returns the bytes represented by the base32 string s.
+func (enc *Encoding) DecodeStringKevOrig(s string) ([]byte, error) {
 	stripped := make([]byte, 0, len(s))
 	for i := 0; i < len(s); i++ {
 		c := s[i]
@@ -358,6 +394,61 @@ func (enc *Encoding) DecodeString(s string) ([]byte, error) {
 	dbuf := make([]byte, enc.DecodedLen(len(s)))
 	n, _, err := enc.decode(dbuf, stripped)
 	return dbuf[:n], err
+}
+
+// DecodeString returns the bytes represented by the base32 string s.
+func (enc *Encoding) DecodeStringKevNew(s string) ([]byte, error) {
+	stripped := make([]byte, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c != '\r' && c != '\n' {
+			stripped = append(stripped, c)
+		}
+	}
+	n, _, err := enc.decode(stripped, stripped)
+	return stripped[:n], err
+}
+
+func (enc *Encoding) DecodeStringOpt(s string) ([]byte, error) {
+	stripped := make([]byte, 0, len(s))
+	for _, c := range []byte(s) {
+		if c != '\r' && c != '\n' {
+			stripped = append(stripped, c)
+		}
+	}
+	n, _, err := enc.decode(stripped, stripped)
+	return stripped[:n], err
+}
+
+func (enc *Encoding) DecodeStringDeOpt(s string) ([]byte, error) {
+	stripped := make([]byte, 0, len(s))
+	bytesIn := []byte(s)
+	for _, c := range  bytesIn {
+		if c != '\r' && c != '\n' {
+			stripped = append(stripped, c)
+		}
+	}
+	n, _, err := enc.decode(stripped, stripped)
+	return stripped[:n], err
+}
+
+// DecodeString returns the bytes represented by the base32 string s.
+func (enc *Encoding) DecodeStringWhy(s string) ([]byte, error) {
+	strb := []byte(s)
+	off := 0
+	for _, b := range strb {
+		if b == '\n' || b == '\r' {
+			continue
+		}
+		strb[off] = b
+		off++
+	}
+
+	n, _, err := enc.decode(strb, strb[:off])
+	if err != nil {
+		return nil, err
+	}
+	return strb[:n], nil
 }
 
 type decoder struct {

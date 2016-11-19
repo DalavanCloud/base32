@@ -353,3 +353,79 @@ func TestNoPaddingRand(t *testing.T) {
 		}
 	}
 }
+
+var keyLen = 55
+var sampleKey = RandomBase32String(keyLen)
+var sampleKeyBytes = []byte(sampleKey)
+//var sampleKey = "BP\rH3BGZMIEGPCRY2LVF\nCP2IS7LPYWXVY3PFMJ\rX5SNSKDRT6E7ZVJVXI"
+
+func BenchmarkKeyDecodeKevOrig(b *testing.B) {
+	key := sampleKey
+	for i := 0; i < b.N; i++ {
+		_,err := RawStdEncoding.DecodeStringKevOrig(key)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func BenchmarkKeyDecodeKevNew(b *testing.B) {
+	key := sampleKey
+	for i := 0; i < b.N; i++ {
+		_,err := RawStdEncoding.DecodeStringKevNew(key)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func BenchmarkKeyDecodeOpt(b *testing.B) {
+	key := sampleKey
+	for i := 0; i < b.N; i++ {
+		_,err := RawStdEncoding.DecodeStringOpt(key)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+// To test that "for i,c := range byte[](s) {}" is really optimized
+func BenchmarkKeyDecodeDeOpt(b *testing.B) {
+	key := sampleKey
+	for i := 0; i < b.N; i++ {
+		_,err := RawStdEncoding.DecodeStringDeOpt(key)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func BenchmarkKeyDecodeWhy(b *testing.B) {
+	key := sampleKey
+	for i := 0; i < b.N; i++ {
+		_,err := RawStdEncoding.DecodeStringWhy(key)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func BenchmarkKeyDecodeFinal(b *testing.B) {
+	key := sampleKey
+	for i := 0; i < b.N; i++ {
+		_,err := RawStdEncoding.DecodeString(key)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func RandomBase32String(strlen int) string {
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+	result := make([]byte, strlen)
+	for i := 0; i < strlen; i++ {
+		result[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(result)
+}
+
