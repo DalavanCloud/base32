@@ -356,8 +356,18 @@ func TestNoPaddingRand(t *testing.T) {
 
 var keyLen = 55
 var sampleKey = RandomBase32String(keyLen)
-var sampleKeyBytes = []byte(sampleKey)
+//var sampleKeyBytes = []byte(sampleKey)
 //var sampleKey = "BP\rH3BGZMIEGPCRY2LVF\nCP2IS7LPYWXVY3PFMJ\rX5SNSKDRT6E7ZVJVXI"
+
+func BenchmarkKeyDecodeOrig(b *testing.B) {
+	key := sampleKey
+	for i := 0; i < b.N; i++ {
+		_,err := RawStdEncoding.DecodeStringOrig(key)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 
 func BenchmarkKeyDecodeKevOrig(b *testing.B) {
 	key := sampleKey

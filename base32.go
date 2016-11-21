@@ -8,6 +8,7 @@ package base32
 import (
 	"io"
 	"strconv"
+	"strings"
 )
 
 /*
@@ -380,6 +381,20 @@ func (enc *Encoding) DecodeString(s string) ([]byte, error) {
 		return nil, err
 	}
 	return strb[:n], nil
+}
+
+var removeNewlinesMapper = func(r rune) rune {
+	if r == '\r' || r == '\n' {
+		return -1
+	}
+	return r
+}
+
+func (enc *Encoding) DecodeStringOrig(s string) ([]byte, error) {
+	s = strings.Map(removeNewlinesMapper, s)
+	dbuf := make([]byte, enc.DecodedLen(len(s)))
+	n, _, err := enc.decode(dbuf, []byte(s))
+	return dbuf[:n], err
 }
 
 // DecodeString returns the bytes represented by the base32 string s.
